@@ -2,7 +2,7 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import pool from "../config/db.js";
+import db from "../config/db.js";
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "visjwt@96";
@@ -15,7 +15,7 @@ router.post("/login", async (req, res) => {
     return res.status(400).json({ error: "Email and password are required" });
 
   try {
-    const userResult = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
+    const userResult = await db.query("SELECT * FROM users WHERE email=$1", [email]);
     if (userResult.rows.length === 0)
       return res.status(400).json({ error: "User not found" });
 
@@ -36,15 +36,15 @@ router.post("/login", async (req, res) => {
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      sameSite: "lax",
-      secure: false, // set true in production (HTTPS)
+      sameSite: "None",
+      secure: true, // set true in production (HTTPS)
       maxAge: 15 * 60 * 1000,
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      sameSite: "lax",
-      secure: false,
+      sameSite: "None",
+      secure: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -71,7 +71,7 @@ router.post("/register", async (req, res) => {
     return res.status(400).json({ error: "All fields are required" });
 
   try {
-    const existingUser = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
+    const existingUser = await db.query("SELECT * FROM users WHERE email=$1", [email]);
     if (existingUser.rows.length > 0)
       return res.status(400).json({ error: "Email already registered" });
 
@@ -98,7 +98,7 @@ router.get("/profile", async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const result = await pool.query(
+    const result = await db.query(
       "SELECT id, username, email, role, created_at FROM users WHERE id=$1",
       [decoded.id]
     );

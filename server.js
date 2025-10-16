@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
-import pool from "./config/db.js";
 import path from "path";
 import cookieParser from "cookie-parser";
 
@@ -10,7 +9,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173","https://auth-db-frontend.netlify.app"],
     credentials: true,
 }));
 app.use(express.json());

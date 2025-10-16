@@ -1,6 +1,6 @@
 // backend/routes/orders.js
 import express from "express";
-import pool from "../config/db.js";
+import db from "../config/db.js";
 import { verifyToken, authorizeRoles } from "../middleware/authMiddleware.js";
 
 const router = express.Router();   
@@ -43,7 +43,7 @@ router.get("/", verifyToken, authorizeRoles("admin", "editor", "viewer"), async 
 
         baseQuery += ` GROUP BY o.order_id, c.name, c.email ORDER BY o.created_at DESC`;
 
-        const result = await pool.query(baseQuery, params);
+        const result = await db.query(baseQuery, params);
         res.json(result.rows);
     } catch (err) {
         console.error("❌ Error fetching orders:", err);
@@ -61,7 +61,7 @@ router.post("/", verifyToken, authorizeRoles("admin", "editor"), async (req, res
         return res.status(400).json({ error: "All fields are required" });
 
     try {
-        const result = await pool.query(
+        const result = await db.query(
             `INSERT INTO orders (customer_id, status, total, created_at)
        VALUES ($1, $2, $3, NOW()) RETURNING *`,
             [customer_id, status, total]
@@ -81,7 +81,7 @@ router.put("/:id", verifyToken, authorizeRoles("admin", "editor"), async (req, r
     const { status, total } = req.body;
 
     try {
-        const result = await pool.query(
+        const result = await db.query(
             `UPDATE orders 
        SET status = $1, total = $2 
        WHERE order_id = $3 
@@ -106,7 +106,7 @@ router.delete("/:id", verifyToken, authorizeRoles("admin"), async (req, res) => 
     const { id } = req.params;
 
     try {
-        const result = await pool.query("DELETE FROM orders WHERE order_id = $1 RETURNING *", [id]);
+        const result = await db.query("DELETE FROM orders WHERE order_id = $1 RETURNING *", [id]);
         if (result.rows.length === 0)
             return res.status(404).json({ error: "Order not found" });
 

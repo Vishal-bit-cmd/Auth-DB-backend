@@ -1,12 +1,12 @@
 import express from "express";
-import pool from "../config/db.js";
+import db from "../config/db.js";
 
 const router = express.Router();
 
 // Top Products by Sales
 router.get("/sales-by-product", async (req, res) => {
     try {
-        const result = await pool.query(`
+        const result = await db.query(`
       SELECT p.name AS product_name,
              SUM(oi.quantity * oi.price) AS total_sales
       FROM order_items oi
@@ -25,7 +25,7 @@ router.get("/sales-by-product", async (req, res) => {
 // Sales by Category (Pie Chart)
 router.get("/sales-by-category", async (req, res) => {
     try {
-        const result = await pool.query(`
+        const result = await db.query(`
       SELECT c.name AS category_name,
              SUM(oi.quantity * oi.price) AS total_sales
       FROM order_items oi
@@ -44,7 +44,7 @@ router.get("/sales-by-category", async (req, res) => {
 // Top Customers by Spending
 router.get("/top-customers", async (req, res) => {
     try {
-        const result = await pool.query(`
+        const result = await db.query(`
       SELECT cu.name AS customer_name,
              SUM(oi.quantity * oi.price) AS total_spent
       FROM order_items oi

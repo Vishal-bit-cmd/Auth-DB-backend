@@ -1,13 +1,13 @@
 // backend/routes/KPIRoutes.js
 import express from "express";
-import pool from "../config/db.js";
+import db from "../config/db.js";
 
 const router = express.Router();
 
 // Total sales of delivered
 router.get("/total-sales", async (req, res) => {
     try {
-        const result = await pool.query(`
+        const result = await db.query(`
       SELECT COALESCE(SUM(oi.quantity * oi.price),0) AS total_sales
       FROM order_items oi
       JOIN orders o ON oi.order_id = o.order_id
@@ -23,7 +23,7 @@ router.get("/total-sales", async (req, res) => {
 // Total orders
 router.get("/total-orders", async (req, res) => {
     try {
-        const result = await pool.query(`
+        const result = await db.query(`
       SELECT COUNT(*) AS total_orders
       FROM orders
     `);
@@ -37,7 +37,7 @@ router.get("/total-orders", async (req, res) => {
 // Total customers
 router.get("/total-customers", async (req, res) => {
     try {
-        const result = await pool.query(`
+        const result = await db.query(`
       SELECT COUNT(*) AS total_customers
       FROM customers
     `);

@@ -1,6 +1,6 @@
 // backend/routes/products.js
 import express from "express";
-import pool from "../config/db.js";
+import db from "../config/db.js";
 import path from "path";
 import multer from "multer";
 import { verifyToken, authorizeRoles } from "../middleware/authMiddleware.js";
@@ -42,7 +42,7 @@ router.get("/", verifyToken, authorizeRoles("admin", "editor", "viewer"), async 
     }
 
     query += " ORDER BY p.id ASC";
-    const result = await pool.query(query, params);
+    const result = await db.query(query, params);
 
     const products = result.rows.map((p) => ({
       ...p,
@@ -61,7 +61,7 @@ router.get("/", verifyToken, authorizeRoles("admin", "editor", "viewer"), async 
 /* -------------------------------------------------------------------------- */
 router.get("/categories", verifyToken, authorizeRoles("admin", "editor", "viewer"), async (req, res) => {
   try {
-    const result = await pool.query("SELECT id, name FROM categories ORDER BY name ASC");
+    const result = await db.query("SELECT id, name FROM categories ORDER BY name ASC");
     res.json(result.rows);
   } catch (err) {
     console.error("❌ Error fetching categories:", err);
@@ -77,7 +77,7 @@ router.post("/", verifyToken, authorizeRoles("admin", "editor"), upload.single("
   const imageUrl = req.file ? req.file.filename : null;
 
   try {
-    const result = await pool.query(
+    const result = await db.query(
       `INSERT INTO products (name, price, category_id, image_url) 
        VALUES ($1, $2, $3, $4) RETURNING *`,
       [name, price, category_id, imageUrl]
@@ -118,7 +118,7 @@ router.put("/:id", verifyToken, authorizeRoles("admin", "editor"), upload.single
       params = [name, price, category_id, id];
     }
 
-    const result = await pool.query(query, params);
+    const result = await db.query(query, params);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Product not found" });
     }
@@ -140,7 +140,7 @@ router.delete("/:id", verifyToken, authorizeRoles("admin"), async (req, res) => 
   const { id } = req.params;
 
   try {
-    const result = await pool.query("DELETE FROM products WHERE id = $1 RETURNING *", [id]);
+    const result = await db.query("DELETE FROM products WHERE id = $1 RETURNING *", [id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Product not found" });
     }

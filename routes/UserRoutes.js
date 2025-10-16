@@ -1,5 +1,5 @@
 import express from "express";
-import pool from "../config/db.js";
+import db from "../config/db.js";
 import bcrypt from "bcryptjs";
 import { verifyToken, authorizeRoles } from "../middleware/authMiddleware.js";
 
@@ -24,7 +24,7 @@ router.get("/", verifyToken, authorizeRoles("admin"), async (req, res) => {
 
     query += " ORDER BY id ASC";
 
-    const result = await pool.query(query, params);
+    const result = await db.query(query, params);
     res.json(result.rows);
   } catch (err) {
     console.error("❌ Error fetching users:", err);
@@ -40,7 +40,7 @@ router.post("/", verifyToken, authorizeRoles("admin"), async (req, res) => {
 
   try {
     const hashed = await bcrypt.hash(password, 10);
-    const result = await pool.query(
+    const result = await db.query(
       "INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role, created_at",
       [username, email, hashed, role]
     );
@@ -57,7 +57,7 @@ router.put("/:id", verifyToken, authorizeRoles("admin"), async (req, res) => {
   const { username, email, role } = req.body;
 
   try {
-    const result = await pool.query(
+    const result = await db.query(
       "UPDATE users SET username=$1, email=$2, role=$3 WHERE id=$4 RETURNING id, username, email, role, created_at",
       [username, email, role, id]
     );
@@ -73,7 +73,7 @@ router.delete("/:id", verifyToken, authorizeRoles("admin"), async (req, res) => 
   const { id } = req.params;
 
   try {
-    await pool.query("DELETE FROM users WHERE id=$1", [id]);
+    await db.query("DELETE FROM users WHERE id=$1", [id]);
     res.json({ message: "User deleted successfully" });
   } catch (err) {
     console.error("❌ Error deleting user:", err);
